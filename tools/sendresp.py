@@ -7,7 +7,7 @@ whole_ram = bytearray()
 
 
 def main():
-    for addr in range(0x100, 0x1000, 256):
+    for addr in range(0x3E0, 0x5E0, 256):
         print(f"Dumping range: {hex(addr)} - {hex(addr+256)}")
 
         sock = foolsocket.FoolsSocket("fools2024.online", 26273)
