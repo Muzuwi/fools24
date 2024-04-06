@@ -2,7 +2,16 @@
 	"folders": [
 		{
 			"path": ".."
-		}
+		},
+		{
+			"path": "../extern/pokered"
+		},
+		{
+			"path": "../extern/pokecrystal"
+		},
+		{
+			"path": "../extern/pokeemerald"
+		},
 	],
 	"settings": {}
 }
