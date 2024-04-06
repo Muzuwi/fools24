@@ -122,3 +122,8 @@ go.work
 
 **/__pycache__
 
+
+saves/
+extern/
+bin/
+
