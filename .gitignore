@@ -133,4 +133,7 @@ bin/
 *.rtc
 poke*.sav
 **/*.ghidra/*
+# bgb wine stuff
+**/bgb.dxvk-cache
+**/bgb_d3d9.log
 
