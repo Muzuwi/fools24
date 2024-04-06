@@ -127,3 +127,10 @@ saves/
 extern/
 bin/
 
+*.gbc
+*.gba
+*.gb
+*.rtc
+poke*.sav
+**/*.ghidra/*
+
