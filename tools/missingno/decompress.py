@@ -38,7 +38,7 @@ class Decompressor():
         self.output[self.output_ptr] = b
 
 
-    def move_to_next_buffer_position(self):
+    def move_to_next_buffer_position(self) -> bool:
         self.cur_pos_y += 1
         if self.cur_pos_y >= self.height:
             # curColumnDone
@@ -55,22 +55,17 @@ class Decompressor():
                 # allColumnsDone
                 # this does cursed things with the stack
                 self.cur_pos_x = 0
-                if self.flags & 0b10:
-                    # - UnpackSprite
-                    raise UNIMPLEMENTED
-
-                self.flags ^= 0b01
-                self.flags |= 0b10
-                # - UncompressSpriteDataLoop
-                raise UNIMPLEMENTED
+                return True
 
             self.output_ptr += 1
             self.output_ptr_cached = self.output_ptr
         else:
             self.output_ptr += 1
 
+        return False
 
-    def read_rl_encoded_zeros(self):
+
+    def read_rl_encoded_zeros_count(self) -> int:
         zero_count = 0
 
         while True:
@@ -89,11 +84,7 @@ class Decompressor():
         print(f"{num_of_zeros:x}")
 
         iterations = num_of_zeros + offset
-        print(f"Iterations: {iterations:04x}")
-        for _ in range(0, iterations):
-            # write '00'
-            self.write_output(0b00)
-            self.move_to_next_buffer_position()
+        return iterations
 
 
     def decompress(self) -> bytearray:
@@ -106,33 +97,54 @@ class Decompressor():
         print(f"Starting flags: {self.flags:x}")
         self.output_bit_offset = 3
 
-        while True:
-            self.output_ptr = 0x188
-            if self.flags & 0x1:
-                self.output_ptr = 0x310
-            self.output_ptr_cached = self.output_ptr
-            print(f"Offset: {self.output_ptr:x}")
+        self.output_ptr = 0x188
+        if self.flags & 0x1:
+            self.output_ptr = 0x310
+        self.output_ptr_cached = self.output_ptr
+        print(f"Offset: {self.output_ptr:x}")
 
-            if (self.flags & 0x2) != 0x0:
-                raise UNIMPLEMENTED
-
-            # if first bit is 0, input starts with zeros
-            # handle this case
-            if self.reader.read_bit() == 0:
-                self.read_rl_encoded_zeros()
-
-            while True:
-                self.print_state()
-
-                mode = (self.reader.read_bit()<<1) | self.reader.read_bit()
-                if mode == 0b00:
-                    self.read_rl_encoded_zeros()
-                else:
-                    # simply send the bits to the output
-                    self.write_output(mode)
-                    self.move_to_next_buffer_position()
-
+        if (self.flags & 0x2) != 0x0:
             raise UNIMPLEMENTED
+
+        # if first bit is 0, input starts with zeros
+        # handle this case
+        if self.reader.read_bit() == 0:
+            count = self.read_rl_encoded_zeros_count()
+            for _ in range(0, count):
+                # write '00'
+                self.write_output(0b00)
+                if self.move_to_next_buffer_position():
+                    break
+
+        should_stop = False
+        while not should_stop:
+            self.print_state()
+
+            mode = (self.reader.read_bit()<<1) | self.reader.read_bit()
+            if mode == 0b00:
+                count = self.read_rl_encoded_zeros_count()
+                for _ in range(0, count):
+                    # write '00'
+                    self.write_output(0b00)
+                    should_stop = self.move_to_next_buffer_position()
+                    # this breaks from the inner for, not the while
+                    if should_stop:
+                        break
+            else:
+                # simply send the bits to the output
+                self.write_output(mode)
+                should_stop = self.move_to_next_buffer_position()
+
+        print("POST RLE:")
+        # post RLE run, after all rows/columns are done
+        if self.flags & 0b10:
+            # - UnpackSprite
+            raise UNIMPLEMENTED
+
+        # - UncompressSpriteDataLoop
+        self.flags ^= 0b01
+        self.flags |= 0b10
+        raise UNIMPLEMENTED
 
         return self.output
 
