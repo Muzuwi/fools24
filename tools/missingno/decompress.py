@@ -116,36 +116,39 @@ class Decompressor():
                 if self.move_to_next_buffer_position():
                     break
 
-        should_stop = False
-        while not should_stop:
-            self.print_state()
+        while True:
+            should_stop = False
+            while not should_stop:
+                self.print_state()
 
-            mode = (self.reader.read_bit()<<1) | self.reader.read_bit()
-            if mode == 0b00:
-                count = self.read_rl_encoded_zeros_count()
-                for _ in range(0, count):
-                    # write '00'
-                    self.write_output(0b00)
+                mode = (self.reader.read_bit()<<1) | self.reader.read_bit()
+                if mode == 0b00:
+                    count = self.read_rl_encoded_zeros_count()
+                    for _ in range(0, count):
+                        # write '00'
+                        self.write_output(0b00)
+                        should_stop = self.move_to_next_buffer_position()
+                        # this breaks from the inner for, not the while
+                        if should_stop:
+                            break
+                else:
+                    # simply send the bits to the output
+                    self.write_output(mode)
                     should_stop = self.move_to_next_buffer_position()
-                    # this breaks from the inner for, not the while
-                    if should_stop:
-                        break
-            else:
-                # simply send the bits to the output
-                self.write_output(mode)
-                should_stop = self.move_to_next_buffer_position()
 
-        print("POST RLE:")
-        # post RLE run, after all rows/columns are done
-        if self.flags & 0b10:
-            # - UnpackSprite
-            raise UNIMPLEMENTED
+            print("POST RLE:")
+            # post RLE run, after all rows/columns are done
+            # if this was the last sprite, exit
+            if self.flags & 0b10:
+                break
 
-        # - UncompressSpriteDataLoop
-        self.flags ^= 0b01
-        self.flags |= 0b10
+            # there's one more sprite to decompress, set flag and continue
+            # after the next iteration is done, move on to UnpackSprite
+            self.flags ^= 0b01
+            self.flags |= 0b10
+
+        # - UnpackSprite
         raise UNIMPLEMENTED
-
         return self.output
 
 
