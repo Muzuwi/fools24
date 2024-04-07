@@ -87,6 +87,18 @@ class Decompressor():
         return iterations
 
 
+    def unpack_mode2(self):
+        raise UNIMPLEMENTED
+
+
+    def unpack_xor(self):
+        raise UNIMPLEMENTED
+
+
+    def unpack_differential(self):
+        raise UNIMPLEMENTED
+
+
     def decompress(self) -> bytearray:
         sizebyte = self.reader.read_byte()
         self.width = (sizebyte & 0xF) * 8
@@ -153,8 +165,13 @@ class Decompressor():
             self.flags |= 0b10
 
         # - UnpackSprite
-        print("UNPACK SPRITE WITH MODE:", self.unpacking_mode)
-        raise UNIMPLEMENTED
+        if self.unpacking_mode == 2:
+            self.unpack_mode2()
+        elif self.unpacking_mode == 1:
+            self.unpack_xor()
+        else:
+            self.unpack_differential()
+
         return self.output
 
 
