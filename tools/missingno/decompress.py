@@ -104,8 +104,13 @@ class Decompressor():
             self.output_ptr_cached = self.output_ptr
             print(f"Offset: {self.output_ptr:x}")
 
+            # read unpacking mode when this is the last sprite
             if self.flags & 0x2:
-                raise UNIMPLEMENTED
+                if self.reader.read_bit() == 0:
+                    self.unpacking_mode = 0
+                else:
+                    self.unpacking_mode = 1 + self.reader.read_bit()
+                print("Unpacking mode:", self.unpacking_mode)
 
             # if first bit is 0, input starts with zeros
             # handle this case
@@ -148,6 +153,7 @@ class Decompressor():
             self.flags |= 0b10
 
         # - UnpackSprite
+        print("UNPACK SPRITE WITH MODE:", self.unpacking_mode)
         raise UNIMPLEMENTED
         return self.output
 
