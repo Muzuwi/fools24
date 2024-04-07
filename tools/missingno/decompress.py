@@ -12,6 +12,10 @@ class Decompressor():
     LENGTH_ENCODING_OFFSET_LIST = [
         0x01,0x00,0x03,0x00,0x07,0x00,0x0F,0x00,0x1F,0x00,0x3F,0x00,0x7F,0x00,0xFF,0x00,0xFF,0x01,0xFF,0x03,0xFF,0x07,0xFF,0x0F,0xFF,0x1F,0xFF,0x3F,0xFF,0x7F,0xFF,0xFF
     ]
+    # for xor chunks with sprite flipped flag
+    REVERSE_NYBBLE_TABLE = [
+        0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf
+    ]
 
 
     def __init__(self, sprite: bytes) -> None:
@@ -100,6 +104,8 @@ class Decompressor():
 
     def unpack_mode2(self):
         self.reset_output_ptrs()
+        self.cur_pos_x = 0
+        self.cur_pos_y = 0
 
         data_len = (self.width // 8) * self.height
         decoder = differential.DifferentialDecoder(
@@ -121,7 +127,35 @@ class Decompressor():
         output = decoder.decode()
         self.output[self.output_ptr:(self.output_ptr+data_len)] = output
         print("Chunk2 decoded differential data:", output)
-        raise UNIMPLEMENTED
+
+        source = self.output_ptr
+        destination = self.output_ptr_cached
+
+        while True:
+            if self.sprite_flipped:
+                raise UNIMPLEMENTED
+
+            b1 = self.output[source]
+            b2 = self.output[destination]
+            result = b1 ^ b2
+            self.output[destination] = result
+
+            source += 1
+            destination += 1
+
+            self.cur_pos_y += 1
+            if self.cur_pos_y >= self.height:
+                self.cur_pos_y = 0
+                self.cur_pos_x += 8
+                if self.cur_pos_x >= self.width:
+                    self.cur_pos_x = 0
+                    break
+
+        res = self.output[self.output_ptr_cached:self.output_ptr_cached+data_len]
+        print("XOR output:", res)
+
+        with open('BLASTOISE.bin', 'wb') as f:
+            f.write(res)
 
 
     def unpack_xor(self):
