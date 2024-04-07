@@ -90,7 +90,7 @@ class Decompressor():
 
 
     def reset_output_ptrs(self):
-        if self.flags & 0x1:
+        if (self.flags & 0x1) == 0:
             self.output_ptr = 0x310
             self.output_ptr_cached = 0x188
         else:
@@ -103,13 +103,24 @@ class Decompressor():
 
         data_len = (self.width // 8) * self.height
         decoder = differential.DifferentialDecoder(
-            self.output[self.output_ptr:(self.output_ptr+data_len)],
+            self.output[self.output_ptr_cached:(self.output_ptr_cached+data_len)],
             self.width,
             self.height,
             invert=False)
+        output = decoder.decode()
+        self.output[self.output_ptr_cached:(self.output_ptr_cached+data_len)] = output
+        print("Chunk1 decoded differential data:", output)
 
-        print("Decoded differential data:", decoder.decode())
+        # XorSpriteChunks below
 
+        decoder = differential.DifferentialDecoder(
+            self.output[self.output_ptr:(self.output_ptr+data_len)],
+            self.width,
+            self.height,
+            invert=self.sprite_flipped)
+        output = decoder.decode()
+        self.output[self.output_ptr:(self.output_ptr+data_len)] = output
+        print("Chunk2 decoded differential data:", output)
         raise UNIMPLEMENTED
 
 
