@@ -103,7 +103,7 @@ class Decompressor():
 
         data_len = self.width * self.height
         decoder = differential.DifferentialDecoder(
-            self.output[self.output_ptr_cached:(self.output_ptr_cached+data_len)],
+            self.output[self.output_ptr:(self.output_ptr+data_len)],
             self.width,
             self.height,
             invert=False)

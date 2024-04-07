@@ -20,22 +20,25 @@ class DifferentialDecoder():
         self.table_0 = table0
         self.table_1 = table1
         self.invert = invert
-        self.previous_data = 1 if invert else 0
+        self.previous_data = 0
 
 
     def decode_nybble(self, nybble: int) -> int:
+        # print(f"PREVIOUS DATA: {self.previous_data:02x}")
+
         if self.invert:
             initial = self.previous_data & 0b1000
         else:
             initial = self.previous_data & 0b0001
 
-        if not initial:
+        if initial == 0:
             table = self.table_0
         else:
             table = self.table_1
 
         byte = table[nybble >> 1]
-        if byte & 0b1:
+        # print(f"--> TABLE BYTE: {byte:02x}")
+        if nybble % 2 == 0:
             new_nybble = (byte >> 4) & 0xF
         else:
             new_nybble = byte & 0xF
@@ -56,14 +59,18 @@ class DifferentialDecoder():
             high = (byte >> 4) & 0xF
             low = byte & 0xF
 
+            # print(f"->[{ptr:04x}] HI: {high:02x} LO: {low:02x}")
+
             high = self.decode_nybble(high)
             low = self.decode_nybble(low)
 
             output[ptr] = (high << 4) | low
+            # print(f"-> OUTPUT[{ptr:04x}] = {output[ptr]:02x}")
             ptr += self.height
 
             x += 8
             if x >= self.width:
+                self.previous_data = 0
                 x = 0
                 y += 1
                 if y >= self.height:
