@@ -97,26 +97,26 @@ class Decompressor():
         print(f"Starting flags: {self.flags:x}")
         self.output_bit_offset = 3
 
-        self.output_ptr = 0x188
-        if self.flags & 0x1:
-            self.output_ptr = 0x310
-        self.output_ptr_cached = self.output_ptr
-        print(f"Offset: {self.output_ptr:x}")
-
-        if (self.flags & 0x2) != 0x0:
-            raise UNIMPLEMENTED
-
-        # if first bit is 0, input starts with zeros
-        # handle this case
-        if self.reader.read_bit() == 0:
-            count = self.read_rl_encoded_zeros_count()
-            for _ in range(0, count):
-                # write '00'
-                self.write_output(0b00)
-                if self.move_to_next_buffer_position():
-                    break
-
         while True:
+            self.output_ptr = 0x188
+            if self.flags & 0x1:
+                self.output_ptr = 0x310
+            self.output_ptr_cached = self.output_ptr
+            print(f"Offset: {self.output_ptr:x}")
+
+            if self.flags & 0x2:
+                raise UNIMPLEMENTED
+
+            # if first bit is 0, input starts with zeros
+            # handle this case
+            if self.reader.read_bit() == 0:
+                count = self.read_rl_encoded_zeros_count()
+                for _ in range(0, count):
+                    # write '00'
+                    self.write_output(0b00)
+                    if self.move_to_next_buffer_position():
+                        break
+
             should_stop = False
             while not should_stop:
                 self.print_state()
