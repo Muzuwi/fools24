@@ -5,6 +5,7 @@ from map_tileset_data import MAP_TO_TILESET_DATA
 
 MAP_DATA_OBJ = "map_data.o"
 TILESET_DATA_OBJ = "tilesets.o"
+DEBUG_PRINT_MAPS_AND_EXIT = False
 
 
 def parse_attributes(obj: rgbbin.objfile.ObjectFile, name: str):
@@ -17,7 +18,7 @@ def parse_attributes(obj: rgbbin.objfile.ObjectFile, name: str):
 
     off = attr_sym["value"]
     data = sect["data"][off:off+3]
-    print(data)
+    # print(data)
 
     border_block, height, width = struct.unpack('BBB', data)
     return {
@@ -83,8 +84,8 @@ def get_map_data():
             print("Parsing map %s.." % m)
             attrs = parse_attributes(obj, m)
             blocks = get_block_data(obj, m, attrs)
-            print(attrs)
-            print(blocks)
+            # print(attrs)
+            # print(blocks)
 
             map_data[m] = {
                 "attributes": attrs,
@@ -104,7 +105,7 @@ def generate_tile_maps(maps, tilesets):
         tileset_name = MAP_TO_TILESET_DATA[k]['tileset']
         tileset = tilesets[tileset_name]
 
-        print(blkdata, width, height, tileset_name, tileset)
+        # print(blkdata, width, height, tileset_name, tileset)
         tilemap = []
         for y in range(0, height):
             # go one row at a time
@@ -123,7 +124,45 @@ def generate_tile_maps(maps, tilesets):
     return tilemaps
 
 
-def main():
+REQUESTED_VALUES = [
+    # tile_x, tile_y, tile_val
+    # (0 , 12, 0x79), <- UI tile, not map
+    (11, 0, 0x05),
+    (7, 6, 0x23),
+    (3, 2, 0x02),
+    (4, 2, 0x04),
+    # (12, 11, 0x01) <- also UI i think, removed it and found a match
+]
+
+
+def check_match(tilemap, x: int, y: int):
+    width = tilemap["width"]
+    height = tilemap["height"]
+
+    matches = 0
+    for r in REQUESTED_VALUES:
+        target_x = x + r[0]
+        target_y = y + r[1]
+        wanted = r[2]
+        if target_x >= width or target_y >= height:
+            continue
+
+        if tilemap["tiles"][target_y * width + target_x] == wanted:
+            matches = matches + 1
+
+    if matches > 1:
+        print(f"[partial] Found {matches} matches at {target_x}, {target_y}")
+    return matches == len(REQUESTED_VALUES)
+
+
+def print_hex_list(data, width, height):
+    for y in range(0, height):
+        for x in range(0, width):
+            print(f"{data[y*width+x]:x}".zfill(2), " ", end="")
+        print()
+
+
+def debug_print_maps():
     maps = get_map_data()
     tilesets = get_tilesets()
     tilemaps = generate_tile_maps(maps, tilesets)
@@ -140,7 +179,7 @@ def main():
             print()
         print(f"Map dimensions: {width}x{height}")
         print(f"Map tileset: {MAP_TO_TILESET_DATA[k]['tileset']}")
-
+        print_hex_list(blkdata, width, height)
         print(f"Associated tileset:")
         print(f"\t{tilesets[MAP_TO_TILESET_DATA[k]['tileset']]}")
 
@@ -148,11 +187,39 @@ def main():
         tile_width = tilemaps[k]["width"]
         tile_height = tilemaps[k]["height"]
         tilemap = tilemaps[k]["tiles"]
-        for y in range(0, tile_height):
-            for x in range(0, tile_width):
-                print(f"{tilemap[y*tile_width+x]:x}".zfill(2), " ", end="")
-            print()
+        print_hex_list(tilemap, tile_width, tile_height)
         print(f" =============== ")
+
+
+def main():
+    if DEBUG_PRINT_MAPS_AND_EXIT:
+        debug_print_maps()
+        return
+
+
+    maps = get_map_data()
+    tilesets = get_tilesets()
+    tilemaps = generate_tile_maps(maps, tilesets)
+
+    for k, m in tilemaps.items():
+        width = m["width"]
+        height = m["height"]
+
+        # the player can only move in increments of two GB tiles
+        for y in range(0, height, 2):
+            for x in range(0, width, 2):
+                if not check_match(m, x, y):
+                    continue
+
+                # for r in REQUESTED_VALUES:
+                #     print(m["tiles"][(y+r[1])*width + x + r[0]])
+
+                map_x, map_y = int((x+8)/2), int((y+8)/2)
+                print(f"SUCCESS: Found complete match at map {k}")
+                print(f"In-map coordinates: {map_x},{map_y} (0-indexed)")
+                print(f"In-map coordinates (hex): {map_x:02x},{map_y:02x}")
+                print(f"Check 01:dcb8 and 01:dcb7 respectively for X/Y (wXCoord/wYCoord)")
+                print_hex_list(m["tiles"], width, height)
 
     return
 
