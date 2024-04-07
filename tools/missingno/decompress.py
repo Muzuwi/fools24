@@ -101,7 +101,7 @@ class Decompressor():
     def unpack_mode2(self):
         self.reset_output_ptrs()
 
-        data_len = self.width * self.height
+        data_len = (self.width // 8) * self.height
         decoder = differential.DifferentialDecoder(
             self.output[self.output_ptr:(self.output_ptr+data_len)],
             self.width,

@@ -14,6 +14,9 @@ class DifferentialDecoder():
                  table0 = DECODE_NYBBLE0_TABLE,
                  table1 = DECODE_NYBBLE1_TABLE,
                  invert = False) -> None:
+        self.buffer_size = (width // 8) * height
+        if len(input) != self.buffer_size:
+            raise RuntimeError(f"Invalid size for differential input, expected {self.buffer_size} bytes")
         self.input = input
         self.width = width
         self.height = height
@@ -48,7 +51,7 @@ class DifferentialDecoder():
 
 
     def decode(self) -> bytearray:
-        output = bytearray(b'\x00' * len(self.input))
+        output = bytearray(b'\x00' * self.buffer_size)
 
         ptr = 0
         ptr_cached = 0
