@@ -45,3 +45,8 @@ back sprite: $8F73
 
 - RLE corruption could be restored? It only or's the bits in hall of fame data
 - Unpack corruption seems awful and unrecoverable
+
+
+RLE CORRUPTION: individual bits in HoF
+DIFFERENTIAL DECODER CORRUPTION: 1352 bytes past $A310; last corrupted byte at $A857
+
