@@ -48,66 +48,6 @@ def main():
     unclobbered_xord = xord[0x3C0:]
     hexdump.hexdump(unclobbered_xord, base=0x6D0)
 
-    ptr = 0x310
-    ptr_cached = 0x310
-    x = 0
-    y = 0
-    file = open("logs.txt", "wt")
-    statelist = []
-    curlist = []
-    mx = 0
-    while True:
-        file.write("%04x %d %d\n" % (0xA000+ptr, x, y))
-        if ptr >= 0x6D0:
-            curlist.append(ptr)
-        mx = max(mx, ptr)
-
-        ptr += MISSINGNO_SIZE[1]
-
-        x += 8
-        if x >= MISSINGNO_SIZE[0]:
-            file.write("# CLEAN STATE\n")
-            statelist.append(curlist.copy())
-            curlist = []
-            x = 0
-            y += 1
-            if y >= MISSINGNO_SIZE[1]:
-                y = 0
-                break
-
-            ptr_cached += 1
-            ptr = ptr_cached
-    file.close()
-    print(f"Max ptr: {mx:04x}")
-
-    for v in statelist:
-        b = []
-        print("State group:")
-        for l in v:
-            print(f"\tTarget: {0xA000+l:04x} | Offset from 0xA6D0: {l-0x6D0:04x}")
-            b.append(unclobbered_xord[l - 0x6D0])
-
-        bruteforce_for_group(b)
-
-    SIZE = len(B"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x60\x0C\x00\x37\x0F\x14\x02\x04\x09\x11\x22\x44\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x30\x30\x08\x10\x61\x00\x02\x08\x00\x01\xA0\x01\xA0\x49\x90\x20\x20\x40\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x21\x80\x00\x00\x00\x20\x48\x13\x45\x4C\x20\x40\x00\x04\x0A\x03\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x30\x90\x40\x40\x40\x40\x40\x80\x00\x10\xF0\xA0\xA0\x00\x80\x80\x40\xC0\xC0\x80\x00\x00\x00\x00")
-    TEST_INPUT = b"\x00\xFF\x00\xFF" * (SIZE // 4)
-    diff = differential.DifferentialDecoder(
-        TEST_INPUT,
-        32, 32, invert=False)
-    dump(TEST_INPUT, "sandbox_diff_in")
-    dump(diff.decode(), "sandbox_diff_out")
-
-
-
-
-
-
-    print(statelist)
-
-
-
-
-
     dump(sprite1, "sandbox_sprite1")
     dump(sprite2, "sandbox_sprite2")
     dump(overlapping, "sandbox_overlap")
