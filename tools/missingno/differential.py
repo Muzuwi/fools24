@@ -106,7 +106,7 @@ class DifferentialEncoder():
                  initial_data = 0) -> None:
         self.buffer_size = (width // 8) * height
         if len(b) != self.buffer_size:
-            raise RuntimeError(f"Invalid size for input, expected {self.buffer_size} bytes")
+            raise RuntimeError(f"Invalid size for input, expected {self.buffer_size} bytes but got {len(b)}")
         self.input = bytearray(b)
         self.width = width
         self.height = height
