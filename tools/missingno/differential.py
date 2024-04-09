@@ -1,12 +1,10 @@
+DECODE_NYBBLE0_TABLE = [ 0x01,0x32,0x76,0x45,0xfe,0xcd,0x89,0xba ]
+DECODE_NYBBLE1_TABLE = [ 0xfe,0xcd,0x89,0xba,0x01,0x32,0x76,0x45 ]
+DECODE_NYBBLE0_FLIPPED_TABLE = [ 0x08,0xc4,0xe6,0x2a,0xf7,0x3b,0x19,0xd5 ]
+DECODE_NYBBLE1_FLIPPED_TABLE = [ 0xf7,0x3b,0x19,0xd5,0x08,0xc4,0xe6,0x2a ]
 
 
 class DifferentialDecoder():
-    DECODE_NYBBLE0_TABLE = [ 0x01,0x32,0x76,0x45,0xfe,0xcd,0x89,0xba ]
-    DECODE_NYBBLE1_TABLE = [ 0xfe,0xcd,0x89,0xba,0x01,0x32,0x76,0x45 ]
-    DECODE_NYBBLE0_FLIPPED_TABLE = [ 0x08,0xc4,0xe6,0x2a,0xf7,0x3b,0x19,0xd5 ]
-    DECODE_NYBBLE1_FLIPPED_TABLE = [ 0xf7,0x3b,0x19,0xd5,0x08,0xc4,0xe6,0x2a ]
-
-
     def __init__(self,
                  input: bytes,
                  width: int,
@@ -84,3 +82,25 @@ class DifferentialDecoder():
                 ptr = ptr_cached
 
         return output
+
+
+class DifferentialEncoder():
+    def __init__(self,
+                 b: bytes,
+                 width: int,
+                 height: int,
+                 table0 = DECODE_NYBBLE0_TABLE,
+                 table1 = DECODE_NYBBLE1_TABLE,
+                 invert = False,
+                 initial_data = 0) -> None:
+        self.input = input
+        self.width = width
+        self.height = height
+        self.table_0 = table0
+        self.table_1 = table1
+        self.invert = invert
+        self.previous_data = initial_data
+
+
+    def encode(self):
+        return b""

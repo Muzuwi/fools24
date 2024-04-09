@@ -51,5 +51,5 @@ def test_encoder(input: bytes,
                  width: int,
                  height: int,
                  initial: int):
-    diff = differential.DifferentialDecoder(input, width, height, invert=False)
-    assert diff.decode() == output
+    diff = differential.DifferentialEncoder(input, width, height, invert=False, initial_data=initial)
+    assert diff.encode() == output
