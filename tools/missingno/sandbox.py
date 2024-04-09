@@ -11,6 +11,15 @@ def dump(b: bytes, n: str):
         f.write(b)
 
 
+def bruteforce_for_group(g: list[int]):
+    """ Find an initial starting value for the bytes
+    """
+
+
+
+    print("Forcing", g)
+
+
 def main():
     with open("rest_in_miss_forever_ingno.sav", "rb") as f:
         data = f.read()
@@ -35,20 +44,22 @@ def main():
     hexdump.hexdump(xord, base=0x310)
 
     print(" === A6D0:A858 (1 ^ 2) ===")
-    unclobbered_xord = xord[0x3D0:]
+    unclobbered_xord = xord[0x3C0:]
     hexdump.hexdump(unclobbered_xord, base=0x6D0)
 
-    ptr = 0
-    ptr_cached = 0
+    ptr = 0x310
+    ptr_cached = 0x310
     x = 0
     y = 0
     file = open("logs.txt", "wt")
     statelist = []
     curlist = []
+    mx = 0
     while True:
-        file.write("%04x %d %d\n" % (0xA310+ptr, x, y))
-        if ptr >= (0x6D0 - 0x310):
+        file.write("%04x %d %d\n" % (0xA000+ptr, x, y))
+        if ptr >= 0x6D0:
             curlist.append(ptr)
+        mx = max(mx, ptr)
 
         ptr += MISSINGNO_SIZE[1]
 
@@ -66,11 +77,16 @@ def main():
             ptr_cached += 1
             ptr = ptr_cached
     file.close()
+    print(f"Max ptr: {mx:04x}")
 
     for v in statelist:
+        b = []
         print("State group:")
         for l in v:
-            print(f"\t{0xA310+l:04x}")
+            print(f"\tTarget: {0xA000+l:04x} | Offset from 0xA6D0: {l-0x6D0:04x}")
+            b.append(unclobbered_xord[l - 0x6D0])
+
+        bruteforce_for_group(b)
 
 
     print(statelist)
