@@ -1,0 +1,2 @@
+; approach #2 (overwrite gMain.callback2)
+2000 030022c4 21 56 17 08
