@@ -3,7 +3,7 @@ console:log("Lua based local checker for challenge 4 by TheZZAZZGlitch")
 actions = {}
 
 function readSolution()
-    for line in io.lines("/mnt/prog/Programming/Challenges/fools24/tools/emeraldwww/solution_attempt2.txt") do
+    for line in io.lines("/mnt/prog/Programming/Challenges/fools24/tools/emeraldwww/solution.txt") do
         if string.sub(line, 1, 1) == ";" then
             -- year 2024, still no continue statement
             goto continue
@@ -96,7 +96,7 @@ end
 function muzuwisFancyDebuggingSetup()
     -- printTaskList()
     -- printMain()
-    printSaves()
+    -- printSaves()
 end
 
 function runFrame()
@@ -109,8 +109,6 @@ function runFrame()
                 frameIndex, action.addr, action.val
             ))
             emu:write8(action.addr, action.val)
-
-            muzuwisFancyDebuggingSetup()
         end
     end
 
