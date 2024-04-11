@@ -86,17 +86,17 @@ function printSaves()
     console:log("===== saveptr1 =====")
     console:log(string.format("national: %02x",
                               emu:read8(0x03005daa)))
-    console:log(string.format("pokedex[owned]: %08x",
-                              emu:read32(0x03005db8)))
-    console:log(string.format("pokedex[seen]: %08x",
-                              emu:read32(0x03005dec)))
+    console:log(string.format("pokedex[owned]: %08x%08x%08x%08x",
+                              emu:read32(0x03005db8),emu:read32(0x03005db8+4),emu:read32(0x03005db8+8),emu:read32(0x03005db8+12)))
+    console:log(string.format("pokedex[seen]: %08x%08x%08x%08x",
+                              emu:read32(0x03005dec),emu:read32(0x03005dec+4),emu:read32(0x03005dec+8),emu:read32(0x03005dec+12)))
 end
 
 
 function muzuwisFancyDebuggingSetup()
     -- printTaskList()
     -- printMain()
-    -- printSaves()
+    printSaves()
 end
 
 function runFrame()

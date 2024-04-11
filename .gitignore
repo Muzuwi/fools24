@@ -87,7 +87,7 @@ CMakeCache.txt
 CMakeFiles
 CMakeScripts
 Testing
-Makefile
+#Makefile
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json
@@ -136,4 +136,5 @@ poke*.sav
 # bgb wine stuff
 **/bgb.dxvk-cache
 **/bgb_d3d9.log
-
+payload.bin
+payload.o
